@@ -1,0 +1,250 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Global Safety Net: Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Global Primitives ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidOptionalString(data, key, maxLen) {
+      return !(key in data) || data[key] == null || (data[key] is string && data[key].size() <= maxLen);
+    }
+
+    function isValidOptionalNumber(data, key, minVal, maxVal) {
+      return !(key in data) || data[key] == null || ((data[key] is int || data[key] is float) && data[key] >= minVal && data[key] <= maxVal);
+    }
+
+    function isValidOptionalBoolean(data, key) {
+      return !(key in data) || data[key] == null || data[key] is bool;
+    }
+
+    // --- Validation Blueprints ---
+
+    function isValidUserProfile(data) {
+      return data.userId is string && data.userId == request.auth.uid &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 80 &&
+             isValidOptionalString(data, 'bio', 400) &&
+             isValidOptionalString(data, 'homeWaters', 120) &&
+             isValidOptionalString(data, 'avatarUrl', 500) &&
+             isValidOptionalBoolean(data, 'sharePublicSpots') &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidCatchRecord(data) {
+      return data.userId is string && data.userId == request.auth.uid &&
+             data.species is string && data.species.size() >= 1 && data.species.size() <= 80 &&
+             (data.weightKg is int || data.weightKg is float) && data.weightKg > 0 && data.weightKg <= 1500 &&
+             (data.lengthCm is int || data.lengthCm is float) && data.lengthCm > 0 && data.lengthCm <= 1000 &&
+             data.caughtAtEpochMillis is int && data.caughtAtEpochMillis > 0 &&
+             data.locationName is string && data.locationName.size() >= 1 && data.locationName.size() <= 120 &&
+             isValidOptionalString(data, 'spotId', 128) &&
+             isValidOptionalString(data, 'sessionId', 128) &&
+             isValidOptionalNumber(data, 'latitude', -90, 90) &&
+             isValidOptionalNumber(data, 'longitude', -180, 180) &&
+             data.baitOrLure is string && data.baitOrLure.size() >= 1 && data.baitOrLure.size() <= 100 &&
+             data.fishingMethod is string && data.fishingMethod.size() >= 1 && data.fishingMethod.size() <= 60 &&
+             data.waterConditions is string && data.waterConditions.size() >= 1 && data.waterConditions.size() <= 120 &&
+             isValidOptionalString(data, 'photoBase64', 450000) &&
+             isValidOptionalString(data, 'notes', 2000) &&
+             isValidOptionalBoolean(data, 'released') &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidFishingSession(data) {
+      return data.userId is string && data.userId == request.auth.uid &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 120 &&
+             data.locationName is string && data.locationName.size() >= 1 && data.locationName.size() <= 120 &&
+             isValidOptionalString(data, 'spotId', 128) &&
+             data.startedAtEpochMillis is int && data.startedAtEpochMillis > 0 &&
+             data.durationMinutes is int && data.durationMinutes >= 1 && data.durationMinutes <= 10080 &&
+             isValidOptionalString(data, 'weatherSummary', 160) &&
+             isValidOptionalString(data, 'waterConditions', 160) &&
+             data.experienceNotes is string && data.experienceNotes.size() >= 1 && data.experienceNotes.size() <= 4000 &&
+             isValidOptionalString(data, 'photoBase64', 450000) &&
+             data.catchCount is int && data.catchCount >= 0 && data.catchCount <= 1000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidFishingSpot(data) {
+      return data.userId is string && data.userId == request.auth.uid &&
+             isValidOptionalString(data, 'ownerName', 80) &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+             data.description is string && data.description.size() >= 1 && data.description.size() <= 1000 &&
+             data.waterBodyType is string && data.waterBodyType.size() >= 1 && data.waterBodyType.size() <= 50 &&
+             (data.latitude is int || data.latitude is float) && data.latitude >= -90 && data.latitude <= 90 &&
+             (data.longitude is int || data.longitude is float) && data.longitude >= -180 && data.longitude <= 180 &&
+             data.isShared is bool &&
+             data.isSuccessful is bool &&
+             isValidOptionalString(data, 'targetSpecies', 150) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    // --- Collection Rules ---
+
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list: if isSignedIn() && request.auth.uid == userId;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().keys().hasAll(['userId', 'displayName', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'displayName', 'bio', 'homeWaters',
+                         'avatarUrl', 'sharePublicSpots', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidUserProfile(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidUserProfile(incoming()) &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'displayName', 'bio', 'homeWaters', 'avatarUrl',
+                         'sharePublicSpots', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+
+      // Private Catch Records Subcollection
+      match /catches/{catchId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(catchId) && request.auth.uid == userId;
+        allow list: if isSignedIn() && request.auth.uid == userId && existing().userId == request.auth.uid;
+
+        allow create: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(catchId) &&
+                         request.auth.uid == userId &&
+                         incoming().keys().hasAll([
+                           'userId', 'species', 'weightKg', 'lengthCm',
+                           'caughtAtEpochMillis', 'locationName', 'baitOrLure',
+                           'fishingMethod', 'waterConditions', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'species', 'weightKg', 'lengthCm',
+                           'caughtAtEpochMillis', 'locationName', 'spotId', 'sessionId',
+                           'latitude', 'longitude', 'baitOrLure', 'fishingMethod',
+                           'waterConditions', 'photoBase64', 'notes', 'released',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidCatchRecord(incoming());
+
+        allow update: if isSignedIn() &&
+                         isValidCatchRecord(incoming()) &&
+                         isValidId(userId) &&
+                         isValidId(catchId) &&
+                         request.auth.uid == userId &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'species', 'weightKg', 'lengthCm', 'caughtAtEpochMillis',
+                           'locationName', 'spotId', 'sessionId', 'latitude', 'longitude',
+                           'baitOrLure', 'fishingMethod', 'waterConditions',
+                           'photoBase64', 'notes', 'released', 'updatedAt'
+                         ]);
+
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(catchId) && request.auth.uid == userId;
+      }
+
+      // Private Fishing Sessions Subcollection
+      match /sessions/{sessionId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(sessionId) && request.auth.uid == userId;
+        allow list: if isSignedIn() && request.auth.uid == userId && existing().userId == request.auth.uid;
+
+        allow create: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(sessionId) &&
+                         request.auth.uid == userId &&
+                         incoming().keys().hasAll([
+                           'userId', 'title', 'locationName', 'startedAtEpochMillis',
+                           'durationMinutes', 'experienceNotes', 'catchCount',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'title', 'locationName', 'spotId',
+                           'startedAtEpochMillis', 'durationMinutes', 'weatherSummary',
+                           'waterConditions', 'experienceNotes', 'photoBase64',
+                           'catchCount', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidFishingSession(incoming());
+
+        allow update: if isSignedIn() &&
+                         isValidFishingSession(incoming()) &&
+                         isValidId(userId) &&
+                         isValidId(sessionId) &&
+                         request.auth.uid == userId &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'title', 'locationName', 'spotId', 'startedAtEpochMillis',
+                           'durationMinutes', 'weatherSummary', 'waterConditions',
+                           'experienceNotes', 'photoBase64', 'catchCount', 'updatedAt'
+                         ]);
+
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(sessionId) && request.auth.uid == userId;
+      }
+    }
+
+    // Fishing Map Spots: Strictly private to owner UNLESS owner explicitly sets isShared == true
+    match /spots/{spotId} {
+      allow get: if isSignedIn() && isValidId(spotId) &&
+                    (resource == null || existing().userId == request.auth.uid || existing().isShared == true);
+
+      allow list: if isSignedIn() &&
+                     (existing().userId == request.auth.uid || existing().isShared == true);
+
+      allow create: if isSignedIn() &&
+                       isValidId(spotId) &&
+                       incoming().keys().hasAll([
+                         'userId', 'name', 'description', 'waterBodyType',
+                         'latitude', 'longitude', 'isShared', 'isSuccessful',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'ownerName', 'name', 'description', 'waterBodyType',
+                         'latitude', 'longitude', 'isShared', 'isSuccessful',
+                         'targetSpecies', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidFishingSpot(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidFishingSpot(incoming()) &&
+                       isValidId(spotId) &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'ownerName', 'name', 'description', 'waterBodyType',
+                         'latitude', 'longitude', 'isShared', 'isSuccessful',
+                         'targetSpecies', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(spotId) && existing().userId == request.auth.uid;
+    }
+  }
+}

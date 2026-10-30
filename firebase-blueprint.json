@@ -1,0 +1,299 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User account profile, angler bio, and privacy preferences",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated Firebase UID"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Angler display name"
+        },
+        "bio": {
+          "type": "string",
+          "description": "Personal angler bio or home waters"
+        },
+        "homeWaters": {
+          "type": "string",
+          "description": "Favorite fishing region or river"
+        },
+        "avatarUrl": {
+          "type": "string",
+          "description": "Profile avatar URL or local URI"
+        },
+        "sharePublicSpots": {
+          "type": "boolean",
+          "description": "Whether explicitly shared spots can be viewed publicly"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp on creation"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp on update"
+        }
+      },
+      "required": ["userId", "displayName", "createdAt", "updatedAt"]
+    },
+    "CatchRecord": {
+      "title": "CatchRecord",
+      "description": "Individual fish catch logged by an angler",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase UID"
+        },
+        "species": {
+          "type": "string",
+          "description": "Fish species name (e.g., Largemouth Bass, Rainbow Trout)"
+        },
+        "weightKg": {
+          "type": "number",
+          "description": "Weight normalized in kilograms"
+        },
+        "lengthCm": {
+          "type": "number",
+          "description": "Length normalized in centimeters"
+        },
+        "caughtAtEpochMillis": {
+          "type": "integer",
+          "description": "Date and time the fish was caught in epoch milliseconds"
+        },
+        "locationName": {
+          "type": "string",
+          "description": "Name of fishing location or body of water"
+        },
+        "spotId": {
+          "type": "string",
+          "description": "Optional linked FishingSpot ID"
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Optional linked FishingSession ID"
+        },
+        "latitude": {
+          "type": "number",
+          "description": "Latitude of catch"
+        },
+        "longitude": {
+          "type": "number",
+          "description": "Longitude of catch"
+        },
+        "baitOrLure": {
+          "type": "string",
+          "description": "Bait, fly, or lure used"
+        },
+        "fishingMethod": {
+          "type": "string",
+          "description": "Method (Spinning, Fly Fishing, Baitcasting, Trolling, Bottom, Jigging)"
+        },
+        "waterConditions": {
+          "type": "string",
+          "description": "Water clarity, temperature, or flow conditions"
+        },
+        "photoBase64": {
+          "type": "string",
+          "description": "Downsampled JPEG base64 thumbnail string of the catch"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Personal notes about the catch"
+        },
+        "released": {
+          "type": "boolean",
+          "description": "Whether catch and release was practiced"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp on creation"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp on update"
+        }
+      },
+      "required": [
+        "userId",
+        "species",
+        "weightKg",
+        "lengthCm",
+        "caughtAtEpochMillis",
+        "locationName",
+        "baitOrLure",
+        "fishingMethod",
+        "waterConditions",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "FishingSession": {
+      "title": "FishingSession",
+      "description": "Dedicated fishing journal session entry tracking duration, trip story, photos, and catches",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase UID"
+        },
+        "title": {
+          "type": "string",
+          "description": "Trip or session title"
+        },
+        "locationName": {
+          "type": "string",
+          "description": "Primary fishing location for the trip"
+        },
+        "spotId": {
+          "type": "string",
+          "description": "Optional linked FishingSpot ID"
+        },
+        "startedAtEpochMillis": {
+          "type": "integer",
+          "description": "Start date/time of the session in epoch milliseconds"
+        },
+        "durationMinutes": {
+          "type": "integer",
+          "description": "Total duration of the fishing session in minutes"
+        },
+        "weatherSummary": {
+          "type": "string",
+          "description": "Weather conditions during the session"
+        },
+        "waterConditions": {
+          "type": "string",
+          "description": "Water conditions during the trip"
+        },
+        "experienceNotes": {
+          "type": "string",
+          "description": "Personal fishing experience journal narrative"
+        },
+        "photoBase64": {
+          "type": "string",
+          "description": "Downsampled JPEG base64 photo from the trip"
+        },
+        "catchCount": {
+          "type": "integer",
+          "description": "Number of catches recorded in this session"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp on creation"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp on update"
+        }
+      },
+      "required": [
+        "userId",
+        "title",
+        "locationName",
+        "startedAtEpochMillis",
+        "durationMinutes",
+        "experienceNotes",
+        "catchCount",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "FishingSpot": {
+      "title": "FishingSpot",
+      "description": "Pinned fishing map location with privacy controls and water details",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase UID"
+        },
+        "ownerName": {
+          "type": "string",
+          "description": "Display name of spot creator when shared"
+        },
+        "name": {
+          "type": "string",
+          "description": "Fishing spot name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Location structure, access notes, and tips"
+        },
+        "waterBodyType": {
+          "type": "string",
+          "description": "Lake, River, Stream, Coastal, Reservoir, Pond"
+        },
+        "latitude": {
+          "type": "number",
+          "description": "Latitude coordinate (-90 to 90)"
+        },
+        "longitude": {
+          "type": "number",
+          "description": "Longitude coordinate (-180 to 180)"
+        },
+        "isShared": {
+          "type": "boolean",
+          "description": "False by default (strictly private to user); true only when user explicitly shares spot"
+        },
+        "isSuccessful": {
+          "type": "boolean",
+          "description": "Whether this is a proven productive fishing spot"
+        },
+        "targetSpecies": {
+          "type": "string",
+          "description": "Common target species at this spot"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp on creation"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp on update"
+        }
+      },
+      "required": [
+        "userId",
+        "name",
+        "description",
+        "waterBodyType",
+        "latitude",
+        "longitude",
+        "isShared",
+        "isSuccessful",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Private user account profile document"
+    },
+    "/users/{userId}/catches/{catchId}": {
+      "schema": { "$ref": "#/entities/CatchRecord" },
+      "description": "Private catch records owned exclusively by userId"
+    },
+    "/users/{userId}/sessions/{sessionId}": {
+      "schema": { "$ref": "#/entities/FishingSession" },
+      "description": "Private fishing journal sessions owned exclusively by userId"
+    },
+    "/spots/{spotId}": {
+      "schema": { "$ref": "#/entities/FishingSpot" },
+      "description": "Fishing map spots: private to owner unless isShared == true"
+    }
+  }
+}

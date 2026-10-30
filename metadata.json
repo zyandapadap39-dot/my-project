@@ -1,0 +1,6 @@
+{
+  "name": "FishLog",
+  "description": "A modern, all-in-one fishing journal, catch tracker, session planner, and interactive fishing map companion.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,53 @@
+<resources>
+    <string name="app_name">FishLog</string>
+
+    <!-- Welcome & Authentication -->
+    <string name="auth_tagline">Every Catch Tells a Story.</string>
+    <string name="sign_in_with_google">Continue with Google</string>
+    <string name="continue_as_guest">Continue as Guest</string>
+    <string name="sign_in_with_email">Sign in with Email</string>
+    <string name="create_account_option">Create Account</string>
+    <string name="create_an_account">Create an Account</string>
+    <string name="auth_feature_catches">Precision Catch Logger</string>
+    <string name="auth_feature_map">Private GPS Fishing Map</string>
+    <string name="auth_feature_journal">Session Journal &amp; Personal Records</string>
+
+    <!-- Navigation -->
+    <string name="nav_dashboard">Home</string>
+    <string name="nav_catches">Catches</string>
+    <string name="nav_journal">Journal</string>
+    <string name="nav_map">Map</string>
+    <string name="nav_stats">Stats</string>
+
+    <!-- Dashboard -->
+    <string name="quick_add_catch">Log Catch</string>
+    <string name="weather_title">Live Water &amp; Weather</string>
+    <string name="enable_gps_weather">Enable GPS for Local Conditions</string>
+    <string name="recent_catches_title">Recent Catches</string>
+    <string name="view_all">View All</string>
+
+    <!-- Catch Logger -->
+    <string name="log_new_catch">Log New Catch</string>
+    <string name="edit_catch">Edit Catch</string>
+    <string name="save_catch">Save Catch</string>
+    <string name="delete_catch">Delete Catch</string>
+
+    <!-- Journal -->
+    <string name="new_session">New Session</string>
+    <string name="edit_session">Edit Session</string>
+    <string name="save_session">Save Session</string>
+
+    <!-- Map -->
+    <string name="pin_fishing_spot">Pin Spot</string>
+    <string name="private_spot_label">Private (Only You)</string>
+    <string name="shared_spot_label">Shared with Community</string>
+
+    <!-- Premium -->
+    <string name="fishlog_premium">FishLog Premium</string>
+    <string name="manage_subscription">Manage Subscription in Google Play</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings &amp; Profile</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="exit_guest_mode">Exit Guest Mode</string>
+</resources>
